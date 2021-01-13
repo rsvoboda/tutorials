@@ -1,10 +1,14 @@
 package com.baeldung.di.spring;
 
+import io.quarkus.arc.Arc;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.spi.CDI;
+import javax.enterprise.util.AnnotationLiteral;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @QuarkusTest
@@ -47,6 +51,37 @@ public class SpringUnitTest {
 		SpringPersonService personService = CDI.current().select(SpringPersonService.class).get();
 		assertNotNull(personService);
 		assertNotNull(personService.getPersonDao());
+	}
+
+	@Test
+	public void cdiAndArcWayReturnTheSameBean() {
+		SpringPersonService personService1 = CDI.current().select(SpringPersonService.class).get();
+		SpringPersonService personService2 = Arc.container().select(SpringPersonService.class).get();
+		assertNotNull(personService1);
+		assertNotNull(personService2);
+		assertEquals(personService1, personService2);
+	}
+
+	@Test
+	public void cdiAndArcInstanceWayReturnTheSameBean() {
+		SpringPersonService personService1 = CDI.current().select(SpringPersonService.class).get();
+		SpringPersonService personService2 = Arc.container().instance(SpringPersonService.class).get();
+		assertNotNull(personService1);
+		assertNotNull(personService2);
+		assertEquals(personService1, personService2);
+	}
+
+	@Test
+	public void cdiAndArcStringWayReturnTheSameBean() {
+
+		Arc.container().beanManager().getBeans(Object.class,new AnnotationLiteral<Any>() {})
+				.forEach(bean -> System.out.println(bean.getName() + " - " + bean.getBeanClass().getName()));
+
+		SpringPersonService personService1 = CDI.current().select(SpringPersonService.class).get();
+		SpringPersonService personService2 = (SpringPersonService) Arc.container().instance("springPersonService").get();
+		assertNotNull(personService1);
+		assertNotNull(personService2);
+		assertEquals(personService1, personService2);
 	}
 
 }
